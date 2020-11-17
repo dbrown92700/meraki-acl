@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+    <head><title>Networks</title></head>
+    <body>
+        <h1>Organization: {{org}}</h1>
+        <a href='/org/'>Choose a different Organization</a><br><br>
+        <form action="/acl/">
+        <label for="network">Choose a network:</label>
+        <select id="network" name="network">
+
+{{listnetworks}}
+        </select>
+        <input type="submit" value="Submit">
+        </form><br>
+    </body>
+</html>

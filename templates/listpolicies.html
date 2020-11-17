@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+    <head><title>Policies</title></head>
+    <body>
+        <h1>Organization: {{org}}</h1>
+        <a href='/org/'>Choose a different Organization</a>
+        <h1>Network: {{network}}</h1>
+        <a href='/network/'>Choose a different Network</a><br><br>
+        <form action="/ace/">
+        <label for="acl">Choose an ACL:</label>
+        <select id="acl" name="acl">
+{{listpolicies}}
+        </select>
+        <input type="submit" value="Submit">
+        </form><br>
+    </body>
+</html>
