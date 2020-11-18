@@ -21,7 +21,12 @@ def Organization():
     headers = {
       'X-Cisco-Meraki-API-Key': api_key
     }
-    orgs = json.loads(requests.request("GET", url, headers=headers).text)
+    try:
+        response = requests.request("GET", url, headers=headers)
+        response.raise_for_status()
+    except:
+        return 'ERROR CODE: <br>'+str(response.status_code) + '<br><br>ERROR DETAILS: ' + str(response.text)
+    orgs = json.loads(response.text)
 
     listorgs = ''
     for org in orgs:
@@ -39,7 +44,6 @@ def Network():
     api_key = request.cookies.get('api_key')
     if api_key == None:
         return redirect(url_for('getapikey'))
-
     org = request.args.get('org')
     if org == None:
         org = session['orgid']
@@ -48,7 +52,13 @@ def Network():
     }
 
     url = "{}organizations/{}".format(base_url, org)
-    jorg = json.loads(requests.request("GET", url, headers=headers).text)
+
+    try:
+        response = requests.request("GET", url, headers=headers)
+        response.raise_for_status()
+    except:
+        return 'ERROR CODE: <br>'+str(response.status_code) + '<br><br>ERROR DETAILS: ' + str(response.text)
+    jorg = json.loads(response.text)
     session['org'] = jorg['name']
     session['orgid'] = org
 
@@ -89,13 +99,89 @@ def ACL():
     n = 0
     listpolicies = ''
     for policy in policies:
-        listpolicies += '<option value = "{}">{}</option>\n'.format(n, policy['name'])
+        listpolicies += '<option value = "{}">{}</option>\n'.format(policy['groupPolicyId'], policy['name'])
         n += 1
+
+    url = "{}organizations/{}/networks".format(base_url, session['orgid'])
+    networks = json.loads(requests.request("GET", url, headers=headers).text)
+
+    listnetworks = ''
+    for network in networks:
+        listnetworks += '<option value = "{}">{}</option>\n'.format(network['id'], network['name'])
 
     session['lastaclaction'] = 'Select an action below:'
 
     return render_template('listpolicies.html', org = session['org'], network = session['network'],
-                            orgid = session['orgid'], listpolicies = Markup(listpolicies))
+                            orgid = session['orgid'], listpolicies = Markup(listpolicies),
+                            listnetworks = Markup(listnetworks))
+
+###########################################################################
+#  Prompt user to choose a Group Policy to duplicate from another network
+###########################################################################
+@app.route('/copyacl/')    
+def copyacl():
+
+    api_key = request.cookies.get('api_key')
+    if api_key == None:
+        return redirect(url_for('getapikey'))
+
+    sourcenet = request.args.get('sourcenet')
+    headers = {
+      'X-Cisco-Meraki-API-Key': api_key
+    }
+
+    url = base_url + "networks/{}".format(sourcenet)
+    jnetwork = json.loads(requests.request("GET", url, headers=headers).text)
+
+    url = base_url + "networks/{}/groupPolicies".format(sourcenet)
+    policies = json.loads(requests.request("GET", url, headers=headers).text)
+
+    n = 0
+    listpolicies = ''
+    for policy in policies:
+        listpolicies += '<option value = "{}">{}</option>\n'.format(policy['groupPolicyId'], policy['name'])
+        n += 1
+
+    return render_template('copypolicy.html', network = jnetwork['name'],
+                            listpolicies = Markup(listpolicies), sourcenet = sourcenet)
+
+###########################################################################
+#  Apply copied policy
+###########################################################################
+@app.route('/applycopy/')
+def applycopy():
+    api_key = request.cookies.get('api_key')
+    if api_key == None:
+        api_key = 'not set'
+
+    network = session['netid']
+    sourcenet = request.args.get('sourcenet')
+    acl = request.args.get('acl')
+    aclname = request.args.get('aclname')
+
+    url = base_url + "networks/{}/groupPolicies/{}".format(sourcenet,acl)
+    headers = {
+      'X-Cisco-Meraki-API-Key': api_key,
+      'Content-Type': 'application/json'
+    }
+    policy = json.loads(requests.request("GET", url, headers=headers).text)
+
+    policy.pop('groupPolicyId')
+    if aclname not in ('',None):
+        policy['name'] = aclname
+
+    url = base_url + "networks/{}/groupPolicies".format(network)
+    try:
+        newpolicy = requests.post(url, headers=headers, data = json.dumps(policy))
+        newpolicy.raise_for_status()
+    except:
+        return "POST Error: " + str(newpolicy.status_code) + "<br><br>Error Details: " + str(newpolicy.text) + \
+                            "<br><br>Policy pushed: " + str(policy)
+    session['acl'] = json.loads(newpolicy.text)['groupPolicyId']
+
+    resp = make_response(redirect(url_for('ACE')))
+
+    return resp
 
 ###########################################################################
 #  LIST ACL and Select ACE Action (Delete, Replace, Insert)
@@ -114,23 +200,24 @@ def ACE():
 
     network = session['netid']
 
-    url = base_url + "networks/{}/groupPolicies".format(network)
+    url = base_url + "networks/{}/groupPolicies/{}".format(network,acl)
     headers = {
       'X-Cisco-Meraki-API-Key': api_key
     }
 
-    policies = json.loads(requests.request("GET", url, headers=headers).text)
+    policy = json.loads(requests.request("GET", url, headers=headers).text)
+    session['policyname'] = policy['name']
 
     acltable = ''
     n = 0
-    for ace in policies[int(acl)]['firewallAndTrafficShaping']['l3FirewallRules']:
+    for ace in policy['firewallAndTrafficShaping']['l3FirewallRules']:
         acltable += '<td><input type="radio" name="ace" value = "{}"></td><th>{}</th>'.format(n,n+1)
         for var in ace.values():
             acltable += '<td>{}</td>'.format(var)
         acltable += '</tr>\n'
         n += 1
 
-    return render_template('listacl.html', acl=policies[int(acl)]['name'] , lastaclaction = Markup(session['lastaclaction']),
+    return render_template('listacl.html', acl=policy['name'] , lastaclaction = Markup(session['lastaclaction']),
                              acltable=Markup(acltable), org = session['org'], network = session['network'])
 
 ###########################################################################
@@ -152,14 +239,13 @@ def editace():
         return resp
     aclaction = int(request.args.get('aclaction'))
 
-    url = base_url + "networks/{}/groupPolicies".format(network)
+    url = base_url + "networks/{}/groupPolicies/{}".format(network,acl)
 
     headers = {
       'X-Cisco-Meraki-API-Key': api_key,
       'Content-Type': 'application/json'
     }
-    policies = json.loads(requests.request("GET", url, headers=headers).text)
-    policy = policies[int(acl)]
+    policy = json.loads(requests.request("GET", url, headers=headers).text)
 
     if aclaction in (1,2,3):
         comment = request.args.get('comment')
@@ -212,6 +298,28 @@ def editace():
     requests.put(url, headers=headers, data = json.dumps(policy))
 
     resp = make_response(redirect(url_for('ACE')))
+
+    return resp
+
+###########################################################################
+#  Confirm Policy Deletion & Perform Deletion
+###########################################################################
+@app.route('/deleteconfirm/')    
+def deleteconfirm():
+
+    return render_template('deleteconfirm.html', policyname=session['policyname'], network = session['network'])
+
+@app.route('/deleteacl/')    
+def deleteacl():
+
+    url = base_url + "networks/{}/groupPolicies/{}".format(session['netid'],session['acl'])
+    headers = {
+      'X-Cisco-Meraki-API-Key': request.cookies.get('api_key'),
+      'Content-Type': 'application/json'
+    }
+    requests.request("DELETE", url, headers=headers)
+
+    resp = make_response(redirect(url_for('ACL')))
 
     return resp
 

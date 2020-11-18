@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+    <head><title>Source Policy</title></head>
+    <body>
+        <h1>Copy from Network: {{network}}</h1>
+        <form action="/applycopy/">
+        <label for="acl">Select Group Policy to Copy:</label>
+        <select id="acl" name="acl">
+{{listpolicies}}
+        </select><br><br>
+        <lable for="aclname">Type in new Group Policy Name or leave blank to use the same name:</lable>
+        <input type="text" name="aclname">
+        <input type="hidden" id="sourcenet" name="sourcenet" value="{{sourcenet}}">
+        <input type="submit" value="Submit">
+        </form><br>
+
+    </body>
+</html>
