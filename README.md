@@ -5,6 +5,7 @@ This web app can view and edit L3 ACL's in a Meraki Network group policy.  The p
 - View ACL
 - Delete, modify or insert ACE
 - Delete entire Group Policy
+- Create new Group Policy
 - Duplicate Group Policy from another network
 
 Written in Python 3.7 using Flask templates.  Make sure you have the necessary libraries noted in requirements.txt.  Execute using "python3 main.py"
