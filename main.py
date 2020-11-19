@@ -184,6 +184,39 @@ def applycopy():
     return resp
 
 ###########################################################################
+#  Create a new Group Policy
+###########################################################################
+@app.route('/newpolicy/')
+def newpolicy():
+
+    policyname = request.args.get('newpolicy')
+
+    url = base_url + "networks/{}/groupPolicies".format(session['netid'])
+    headers = {
+      'X-Cisco-Meraki-API-Key': request.cookies.get('api_key'),
+      'Content-Type': 'application/json'
+    }
+    payload = {
+        "name": policyname,
+        "firewallAndTrafficShaping": {
+            "settings": "custom"
+        }
+    }
+
+    try:
+        newpolicy = requests.post(url, headers=headers, data=json.dumps(payload))
+        newpolicy.raise_for_status()
+    except:
+        return "POST Error: " + str(newpolicy.status_code) + "<br><br>Error Details: " + str(newpolicy.text) + \
+                            "<br><br>Policy pushed: " + str(payload)
+
+    session['acl'] = json.loads(newpolicy.text)['groupPolicyId']
+    session['lastaclaction'] = '<b>Created new policy with blank ACL.</b>'
+    resp = make_response(redirect(url_for('ACE')))
+
+    return resp
+
+###########################################################################
 #  LIST ACL and Select ACE Action (Delete, Replace, Insert)
 ###########################################################################
 @app.route('/ace/')    
