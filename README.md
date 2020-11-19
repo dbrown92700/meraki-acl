@@ -1,5 +1,7 @@
 # meraki-acl
 
+This repository has been cloned to https://github.com/CiscoSE/meraki-acl
+
 This web app can view and edit L3 ACL's in a Meraki Network group policy.  The primary use case for this solution is to allow security teams to modify named ACL's called through RADIUS in an 802.1x deployment without having full access to the Meraki Dashboard.  The following features are implemented:
 - Select Organization, Network and Group Policy
 - View ACL
