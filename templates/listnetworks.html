@@ -2,8 +2,12 @@
 <html>
     <head><title>Networks</title></head>
     <body>
-        <h1>Organization: {{org}}</h1>
-        <a href='/org/'>Choose a different Organization</a><br><br>
+        <table><tr>
+            <td style="font-size:25px">Organization:</td>
+            <td><a href='/org/'>{{org}}</a></td>
+        </tr>
+        </table>
+        <br>
         <form action="/acl/">
         <label for="network">Choose a network:</label>
         <select id="network" name="network">

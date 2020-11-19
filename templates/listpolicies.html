@@ -2,10 +2,16 @@
 <html>
     <head><title>Policies</title></head>
     <body>
-        <h1>Organization: {{org}}</h1>
-        <a href='/org/'>Choose a different Organization</a>
-        <h1>Network: {{network}}</h1>
-        <a href='/network/'>Choose a different Network</a><br><br>
+        <table><tr>
+            <td style="font-size:25px">Organization:</td>
+            <td><a href='/org/'>{{org}}</a></td>
+        </tr>
+        <tr>
+            <td style="font-size:25px">Network:</td>
+            <td><a href='/network/'>{{network}}</a></td>
+        </tr>
+        </table>
+        <br>
         <form action="/ace/">
         <label for="acl">View or Edit an ACL in this network:</label>
         <select id="acl" name="acl">

@@ -2,7 +2,13 @@
 <html>
     <head><title>Source Policy</title></head>
     <body>
-        <h1>Copy from Network: {{network}}</h1>
+        <table>
+        <tr>
+            <td style="font-size:25px">Copy from Network:</td>
+            <td><a href='/acl/'>{{network}}</a></td>
+        </tr>
+        </table>
+        <br>
         <form action="/applycopy/">
         <label for="acl">Select Group Policy to Copy:</label>
         <select id="acl" name="acl">

@@ -266,14 +266,14 @@ def editace():
     if aclaction == 0:
         ##### Delete ACE #####
         if ace == 'last':
-            session['lastaclaction'] = 'Cannot delete implicit ALLOW ANY rule'
+            session['lastaclaction'] = '<p style="color:red">Cannot delete implicit ALLOW ANY rule</p>'
         else:
             session['lastaclaction'] = 'Deleted line {}: {}'.format(int(ace)+1,policy['firewallAndTrafficShaping']['l3FirewallRules'].pop(int(ace)))
 
     elif aclaction == 1:
         ##### Replace ACE #####
         if ace == 'last':
-            session['lastaclaction'] = 'Cannot edit implicit ALLOW ANY rule'
+            session['lastaclaction'] = '<p style="color:red">Cannot edit implicit ALLOW ANY rule</p>'
         else:
             policy['firewallAndTrafficShaping']['l3FirewallRules'][int(ace)] = aceline
             session['lastaclaction'] = 'Line {} modified: '.format(int(ace)+1) + str(aceline)

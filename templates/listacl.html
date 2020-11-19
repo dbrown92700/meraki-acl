@@ -2,12 +2,19 @@
 <html>
     <head><title>Policy ACL</title></head>
     <body>
-        <h1>Organization: {{org}}</h1>
-        <a href='/org/'>Choose a different Organization</a>
-        <h1>Network: {{network}}</h1>
-        <a href='/network/'>Choose a different Network</a><br><br>
-        <h1>ACL: {{acl}}</h1>
-        <a href = '/acl/'>Choose a different policy to view/edit.</a><br><br>
+        <table><tr>
+            <td style="font-size:25px">Organization:</td>
+            <td><a href='/org/'>{{org}}</a></td>
+        </tr>
+        <tr>
+            <td style="font-size:25px">Network:</td>
+            <td><a href='/network/'>{{network}}</a></td>
+        </tr>
+            <td style="font-size:25px">ACL Policy:</td>
+            <td><a href='/acl/'>{{acl}}</td>
+        </tr>
+        </table>
+        <br>
         {{lastaclaction}}<br><br>
         <form>
         <table style="border: 1px solid black">
@@ -20,8 +27,17 @@
         </tr>
         </table>
         <br>
-        <button type="submit" name="aclaction" value= "0" formaction="/editacl/">Delete</button> Delete the selected line.<br><br>
-        To edit or insert an entry, select a line above and fill out the data below:
+        <table>
+            <tr>
+                <td width=200>Select a line to take one of these actions.<br><br>
+                    To replace or insert a line, fill out the data below.</b></td>
+                <td><button type="submit" name="aclaction" value= "0" formaction="/editacl/">Delete</button><br>
+                    <button type="submit" name="aclaction" value= "1" formaction="/editacl/">Replace Line</button><br>
+                    <button type="submit" name="aclaction" value= "2" formaction="/editacl/">Insert Above</button><br>
+                    <button type="submit" name="aclaction" value= "3" formaction="/editacl/">Insert Below</button>
+                </td>
+            </tr>
+        </table>
         <table style="border: 1px solid black">
         <tr><th>Comment</th><th>Action</th><th>Protocol</th><th>Port</th><th>Destination</th></tr>
         <tr><td><input type="text" name="comment"></td>
@@ -41,9 +57,6 @@
         <td><input type="text" name="dest"></td>
         </tr>
         </table>
-        <button type="submit" name="aclaction" value= "1" formaction="/editacl/">Replace Line</button>
-        <button type="submit" name="aclaction" value= "2" formaction="/editacl/">Insert Above</button>
-        <button type="submit" name="aclaction" value= "3" formaction="/editacl/">Insert Below</button>
         </form>
         <br>
         <form>
